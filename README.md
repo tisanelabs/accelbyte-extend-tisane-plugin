@@ -1,2 +1,3 @@
-# accelbyte-extend-tisane-plugin
-Tisane Plugin for AccelByte Extend
+# Tisane Plugin for AccelByte Extend
+
+Exposes Tisane content moderation functionality on AccelByte Extend platform.
