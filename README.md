@@ -18,6 +18,61 @@ flowchart LR
 that receives AGS events through `Kafka Connect` and performs actions based on 
 custom logic.
 
+## Tisane API Integration
+
+This app demonstrates integration with [Tisane AI](https://tisane.ai/) for content moderation and natural language processing of chat messages. When a personal chat message is sent, the app automatically analyzes the content using Tisane's API to detect problematic content, sentiment, entities, and more.
+
+### Tisane Configuration
+
+To enable Tisane API integration, you need to configure the following environment variables in your AccelByte Extend App:
+
+#### Required Environment Variables
+
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `TISANE_API_KEY` | Your Tisane API subscription key. Obtain from [Tisane Developer Portal](https://tisane.ai/) | *Required - No default* |
+| `TISANE_PARSE_URL` | Tisane API endpoint for text analysis | `https://api.tisane.ai/parse` |
+| `TISANE_LANGUAGE_CODES` | Language code for content analysis (e.g., `en`, `es`, `fr`) | `en` |
+| `TISANE_SETTING_FORMAT` | Content format type. Use `dialogue` for chat messages | `dialogue` |
+
+#### Setting Up Tisane API Key
+
+1. Visit [https://tisane.ai/](https://tisane.ai/)
+2. Sign up for an account or log in
+3. Navigate to the [Developer Portal](https://dev.tisane.ai/profile)
+4. Obtain your API subscription key (primary or secondary)
+5. Add the key to your AccelByte Extend App environment configuration
+
+#### Configuring in AccelByte Extend App
+
+In the AccelByte Admin Portal:
+
+1. Navigate to your Extend Event Handler App
+2. Go to **Environment Configuration**
+3. Under **Secrets** section, add:
+   - `TISANE_API_KEY` = `your-tisane-api-key`
+4. Under **Variables** section, add (optional, if you want to override defaults):
+   - `TISANE_PARSE_URL` = `https://api.tisane.ai/parse`
+   - `TISANE_LANGUAGE_CODES` = `en`
+   - `TISANE_SETTING_FORMAT` = `dialogue`
+
+### How It Works
+
+When a user sends a personal chat message:
+
+1. The `PersonalChatSentService` receives the chat event from AGS
+2. The message content is extracted from the event payload
+3. A request is sent to Tisane API with the message content
+4. Tisane analyzes the content for:
+   - Abusive language and problematic content
+   - Sentiment analysis
+   - Named entities
+   - Topics and themes
+   - Language detection
+5. The analysis results are logged for review and can be used for content moderation decisions
+
+For more details about Tisane API capabilities, refer to the [Tisane API documentation](https://tisane.ai/docs/).
+
 ## Overview
 
 This repository provides a project template for an `Extend Event Handler`
@@ -39,18 +94,16 @@ this project.
 ...
 ├── src
 │  ├── AccelByte.PluginArch.EventHandler.Demo.Server
-│  │  ├── Protos                                # AGS event spec files (*.proto)
+│  │  ├── Protos                                    # AGS event spec files (*.proto)
 │  │  └── Services
-│  │    ├── UserLoggedInService.cs              # userLoggedIn event handler
-│  │    └── UserThirdPartyLoggedInService.cs    # userThirdPartyLoggedIn event handler
+│  │    ├── UserLoggedInService.cs                  # userLoggedIn event handler
+│  │    ├── UserThirdPartyLoggedInService.cs        # userThirdPartyLoggedIn event handler
+│  │    └── PersonalChatSentService.cs              # personalChatSent event handler with Tisane integration
 ...
 ...
 ```
 
-> :exclamation: In the example included in this project, we focus solely on the
-`userLoggedIn` and `userThirdPartyLoggedIn` events. Therefore, only the AGS event spec files 
-for these two events are included. For other events, the AGS event spec files are available
-[here](https://github.com/AccelByte/accelbyte-api-proto/tree/main/asyncapi/accelbyte). 
+> :exclamation: This project includes examples for handling `userLoggedIn`, `userThirdPartyLoggedIn`, and `personalChatSent` events. The `PersonalChatSentService` demonstrates integration with Tisane API for chat content moderation. For other AGS events, the event spec files are available [here](https://github.com/AccelByte/accelbyte-api-proto/tree/main/asyncapi/accelbyte). 
 
 ## Prerequisites
 
@@ -189,6 +242,12 @@ To be able to run this app, you will need to follow these setup steps.
    AB_CLIENT_SECRET='xxxxxxxxxx'             # Client Secret from the Prerequisites section
    AB_NAMESPACE='xxxxxxxxxx'                 # Namespace ID from the Prerequisites section
    ITEM_ID_TO_GRANT='xxxxxxxxxx'             # In-game item id from a published store we noted previously
+   
+   # Tisane API Configuration (for chat content moderation)
+   TISANE_API_KEY='xxxxxxxxxx'               # Your Tisane API key from https://tisane.ai/
+   TISANE_PARSE_URL=https://api.tisane.ai/parse  # Tisane API endpoint (optional, default shown)
+   TISANE_LANGUAGE_CODES=en                  # Language code for analysis (optional, default: en)
+   TISANE_SETTING_FORMAT=dialogue            # Content format type (optional, default: dialogue)
    ```
 
 ## Building
@@ -360,8 +419,12 @@ After completing testing, the next step is to deploy your app to `AccelByte Gami
    - Secrets
       - `AB_CLIENT_ID`
       - `AB_CLIENT_SECRET`
+      - `TISANE_API_KEY` (Get your key from [Tisane Developer Portal](https://tisane.ai/))
    - Variables
       - `ITEM_ID_TO_GRANT`
+      - `TISANE_PARSE_URL` (optional, default: `https://api.tisane.ai/parse`)
+      - `TISANE_LANGUAGE_CODES` (optional, default: `en`)
+      - `TISANE_SETTING_FORMAT` (optional, default: `dialogue`)
 
 2. **Build and Push the Container Image**
 
