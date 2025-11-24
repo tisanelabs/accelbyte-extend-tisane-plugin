@@ -31,6 +31,7 @@
 
 	<ItemGroup>
 		<Protobuf Include="Protos\iam\account\v1\account.proto" GrpcServices="Server" />
+		<Protobuf Include="Protos\chat\chat\v1\chat.proto" GrpcServices="Server" />
 	</ItemGroup>
 
   <ItemGroup>
