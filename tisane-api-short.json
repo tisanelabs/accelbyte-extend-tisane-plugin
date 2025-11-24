@@ -1,0 +1,1985 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Overview",
+    "version": "4.8.0.0",
+    "description": "This reference describes RESTful web methods for interacting with Tisane API using standard HTTP and JSON-based communication. "
+  },
+  "servers": [
+    {
+      "url": "https://api.tisane.ai",
+      "description": "Tisane public cloud"
+    }
+  ],
+  "tags": [
+    {
+      "name": "NLU / NLP Methods",
+      "description": "These are the methods that actually perform analysis and transformation of input text."
+    },
+    {
+      "name": "Language Model Direct Access",
+      "description": "Methods to retrieve and inspect entries from the language models."
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Feature": {
+        "type": "object",
+        "required": [
+          "index",
+          "value"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Feature type. If unspecified: Grammar",
+            "enum": [
+              "Grammar",
+              "Semantics",
+              "Style"
+            ]
+          },
+          "index": {
+            "type": "integer",
+            "description": "Feature index (within its type)"
+          },
+          "value": {
+            "type": "string",
+            "description": "Feature value ID"
+          }
+        }
+      },
+      "FeatureArray": {
+        "type": "array",
+        "items": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/components/schemas/Feature"
+            }
+          ]
+        }
+      },
+      "Memory": {
+        "type": "object",
+        "properties": {
+          "flags": {
+            "$ref": "#/components/schemas/FeatureArray",
+            "description": "Flags and semantic features set."
+          },
+          "antecedents": {
+            "type": "array",
+            "description": "Previously mentioned elements to be used for coreference resolution.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "family": {
+                  "type": "integer",
+                  "description": "The family ID of the antecedent."
+                },
+                "features": {
+                  "$ref": "#/components/schemas/FeatureArray"
+                }
+              }
+            }
+          },
+          "assign": {
+            "type": "array",
+            "description": "Conditional assignments to be executed when parsing.",
+            "items": {
+              "type": "object",
+              "required": [
+                "if",
+                "then"
+              ],
+              "properties": {
+                "if": {
+                  "type": "object",
+                  "description": "Conditions to match (all conditions must match).",
+                  "properties": {
+                    "family": {
+                      "type": "integer",
+                      "description": "A family ID of the target lexeme."
+                    },
+                    "hypernym": {
+                      "type": "integer",
+                      "description": "A family ID of a hypernym of the target lexeme."
+                    },
+                    "features": {
+                      "description": "Features to match.",
+                      "$ref": "#/components/schemas/FeatureArray"
+                    },
+                    "regex": {
+                      "type": "string",
+                      "description": "A regular expression to match."
+                    }
+                  }
+                },
+                "then": {
+                  "type": "object",
+                  "description": "Attribute values to assign.",
+                  "properties": {
+                    "family": {
+                      "type": "integer",
+                      "description": "A family ID to assign."
+                    },
+                    "hypernym": {
+                      "type": "integer",
+                      "description": "A family ID of a hypernym to assign."
+                    },
+                    "features": {
+                      "description": "Features to assign.",
+                      "$ref": "#/components/schemas/FeatureArray"
+                    },
+                    "attribution": {
+                      "type": "boolean",
+                      "description": "Marks the target as attribution."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "Phrase": {
+        "type": "object",
+        "required": [
+          "type",
+          "family",
+          "offset",
+          "length",
+          "text"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of the phrase (NP/VP/ADJP/ADVP/S)."
+          },
+          "family": {
+            "type": "integer",
+            "description": "The family ID of the phrase."
+          },
+          "offset": {
+            "type": "integer",
+            "description": "The offset where the phrase starts."
+          },
+          "length": {
+            "type": "integer",
+            "description": "The length of the phrase string."
+          },
+          "text": {
+            "type": "string",
+            "description": "The text of the phrase in which members delimited with vertical bars and inner phrases are encapsulated in brackets. For example, *\"I|(love|Lucy)\"*."
+          },
+          "role": {
+            "type": "string",
+            "description": "Semantic role of the phrase in the sentence."
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Phrase"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Tisane-API-Key": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Ocp-Apim-Subscription-Key",
+        "description": "API subscription key (primary or secondary) from [Tisane Developer Portal](https://dev.tisane.ai/profile)"
+      }
+    }
+  },
+  "paths": {
+    "/parse": {
+      "post": {
+        "operationId": "parse",
+        "security": [
+          {
+            "Tisane-API-Key": []
+          }
+        ],
+        "tags": [
+          "NLU / NLP Methods"
+        ],
+        "summary": "Analyze text",
+        "description": "The method analyzes the input and detects problematic content, sentiment snippets, entities, topics, phrase structure, parts of speech, stopwords, and more.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "language",
+                  "content"
+                ],
+                "properties": {
+                  "language": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "settings": {
+                    "type": "object"
+                  }
+                }
+              },
+              "examples": {
+                "Hello Tisane": {
+                  "value": {
+                    "language": "en",
+                    "content": "Hello Tisane API!!"
+                  }
+                },
+                "Abuse detection": {
+                  "value": {
+                    "language": "en",
+                    "content": "Babylonians should stay away from our country. We are full.",
+                    "settings": {
+                      "snippets": true
+                    }
+                  }
+                },
+                "Extract topics (native standard)": {
+                  "value": {
+                    "language": "en",
+                    "content": "An inertial force is a force that resists a change in velocity of an object."
+                  }
+                },
+                "Extract topics (IAB standard)": {
+                  "value": {
+                    "language": "en",
+                    "content": "moon, Jupiter and Mars",
+                    "settings": {
+                      "topic_standard": "iab_description",
+                      "entities": false
+                    }
+                  }
+                },
+                "Adverse media monitoring in fintech": {
+                  "value": {
+                    "language": "en",
+                    "content": "HSBC has been accused of money laundering recently",
+                    "settings": {
+                      "snippets": true,
+                      "sentiment_analysis_type": "entity"
+                    }
+                  }
+                },
+                "Parse alias w/ sentence structure": {
+                  "value": {
+                    "language": "en",
+                    "content": "anxiousgayhorseonketamine",
+                    "settings": {
+                      "parses": true,
+                      "subscope": true,
+                      "sentiment": false,
+                      "format": "alias"
+                    }
+                  }
+                },
+                "Parse hashtag and output words": {
+                  "value": {
+                    "language": "en",
+                    "content": "deathtodishonestpeople",
+                    "settings": {
+                      "words": true,
+                      "subscope": true,
+                      "sentiment": false,
+                      "fetch_definitions": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "example": "application/json"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "text"
+                  ],
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "description": "Input text."
+                    },
+                    "language": {
+                      "type": "string",
+                      "description": "Language code, when the language identification is used."
+                    },
+                    "memory": {
+                      "$ref": "#/components/schemas/Memory",
+                      "description": "The state after the analysis. Can be used to set the state of the future analyses. (Set `state` to `true` to show.)"
+                    },
+                    "topics": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "topic",
+                              "coverage"
+                            ],
+                            "properties": {
+                              "topic": {
+                                "type": "string"
+                              },
+                              "coverage": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "abuse": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "offset",
+                          "length",
+                          "sentence_index",
+                          "type",
+                          "severity"
+                        ],
+                        "properties": {
+                          "offset": {
+                            "type": "integer",
+                            "description": "0-based location in the sentence"
+                          },
+                          "length": {
+                            "type": "integer",
+                            "description": "Length of the fragment"
+                          },
+                          "sentence_index": {
+                            "type": "integer",
+                            "description": "Index of the sentence where the fragment is located"
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "Type of the problematic content",
+                            "enum": [
+                              "personal_attack",
+                              "bigotry",
+                              "external_contact",
+                              "profanity",
+                              "sexual_advances",
+                              "criminal_activity",
+                              "adult_only",
+                              "mental_issues",
+                              "contentious",
+                              "spam",
+                              "social_hierarchy",
+                              "no_meaningful_content",
+                              "generic"
+                            ]
+                          },
+                          "severity": {
+                            "type": "string",
+                            "description": "How severe the issue is",
+                            "enum": [
+                              "low",
+                              "medium",
+                              "high",
+                              "extreme"
+                            ]
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "text": {
+                            "type": "string",
+                            "description": "The fragment itself (`snippets` must be set to `true`)"
+                          },
+                          "explanation": {
+                            "type": "string",
+                            "description": "Human-readable explanation of the rationale for flagging"
+                          }
+                        }
+                      }
+                    },
+                    "sentence_list": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "offset",
+                          "text",
+                          "words",
+                          "parse_tree"
+                        ],
+                        "properties": {
+                          "offset": {
+                            "type": "integer",
+                            "description": "An offset where the sentence starts."
+                          },
+                          "text": {
+                            "type": "string",
+                            "description": "The sentence itself."
+                          },
+                          "words": {
+                            "type": "array",
+                            "description": "Tokenized array of lexical units/lexical chunks (not necessarily by white space or punctuation). Must have `words` set to `true` to appear.",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "offset",
+                                "length",
+                                "type",
+                                "text"
+                              ],
+                              "properties": {
+                                "offset": {
+                                  "type": "integer",
+                                  "description": "The offset at which the lexical chunk starts."
+                                },
+                                "length": {
+                                  "type": "integer",
+                                  "description": "The length of the lexical chunk."
+                                },
+                                "type": {
+                                  "type": "string",
+                                  "description": "The type of the lexical chunk.",
+                                  "enum": [
+                                    "word",
+                                    "numeral",
+                                    "punctuation"
+                                  ]
+                                },
+                                "text": {
+                                  "type": "string",
+                                  "description": "The lexical chunk string."
+                                },
+                                "stopword": {
+                                  "type": "boolean",
+                                  "description": "Whether it's a stopword."
+                                },
+                                "role": {
+                                  "type": "string",
+                                  "description": "A semantic role of the word, if assigned.",
+                                  "enum": [
+                                    "agent",
+                                    "patient",
+                                    "complement",
+                                    "circumstance",
+                                    "beneficiary",
+                                    "verb",
+                                    "surname",
+                                    "list_item",
+                                    "given_name",
+                                    "social_role",
+                                    "title",
+                                    "street_name",
+                                    "street_type",
+                                    "nickname",
+                                    "country",
+                                    "settlement",
+                                    "state",
+                                    "zipcode"
+                                  ]
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "Description of the disambiguated sense in the current context (always in English)."
+                                },
+                                "definition": {
+                                  "type": "string",
+                                  "description": "Dictionary definition of the disambiguated sense in the current context (always in English)."
+                                },
+                                "wikidata": {
+                                  "type": "string",
+                                  "description": "A Wikidata ID of the current word-sense, if exists."
+                                },
+                                "lexeme": {
+                                  "type": "integer",
+                                  "description": "A unique lexeme identifier."
+                                },
+                                "family": {
+                                  "type": "integer",
+                                  "description": "A family identifier."
+                                },
+                                "grammar": {
+                                  "$ref": "#/components/schemas/FeatureArray"
+                                }
+                              }
+                            }
+                          },
+                          "parse_tree": {
+                            "type": "object",
+                            "description": "Hierarchically arranged graph of phrases detected in the sentence. Must have `parses` set to `true` to appear.",
+                            "required": [
+                              "id",
+                              "phrases"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "integer",
+                                "description": "Internal runtime identifier of the sentence parse interpretation."
+                              },
+                              "phrases": {
+                                "type": "array",
+                                "description": "The graph of phrases, with the root phrases at the top level.",
+                                "items": {
+                                  "$ref": "#/components/schemas/Phrase"
+                                }
+                              }
+                            }
+                          },
+                          "corrected_text": {
+                            "type": "string",
+                            "description": "Sentence text if corrected by the built-in spellchecker."
+                          }
+                        }
+                      }
+                    },
+                    "entities_summary": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "type",
+                          "name",
+                          "mentions"
+                        ],
+                        "properties": {
+                          "type": {
+                            "description": "Type or types of the entity.",
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Standard name of the entity."
+                          },
+                          "subtypes": {
+                            "type": "array",
+                            "description": "Sub-types of the entity.",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "subtype": {
+                            "type": "string",
+                            "description": "Main sub-type of the entity."
+                          },
+                          "wikidata": {
+                            "type": "string",
+                            "description": "Wikidata ID, when exists."
+                          },
+                          "relations": {
+                            "type": "array",
+                            "description": "Entity relations with other detected entities.",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "to"
+                              ],
+                              "properties": {
+                                "to": {
+                                  "type": "string",
+                                  "description": "The entity connected to."
+                                },
+                                "links": {
+                                  "type": "array",
+                                  "description": "How the entities are connected.",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "mentions": {
+                            "type": "array",
+                            "description": "Mentions of the entity found in the input text.",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "offset",
+                                "length",
+                                "sentence_index"
+                              ],
+                              "properties": {
+                                "offset": {
+                                  "type": "integer",
+                                  "description": "0-based location in the sentence"
+                                },
+                                "length": {
+                                  "type": "integer",
+                                  "description": "Length of the fragment"
+                                },
+                                "sentence_index": {
+                                  "type": "integer",
+                                  "description": "Index of the sentence where the fragment is located"
+                                },
+                                "text": {
+                                  "type": "string",
+                                  "description": "The fragment itself (`snippets` must be set to `true`)"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "sentiment_expressions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "offset",
+                          "length",
+                          "sentence_index",
+                          "polarity"
+                        ],
+                        "properties": {
+                          "polarity": {
+                            "type": "string",
+                            "description": "The sentiment polarity",
+                            "enum": [
+                              "positive",
+                              "negative",
+                              "mixed",
+                              "neutral"
+                            ]
+                          },
+                          "offset": {
+                            "type": "integer",
+                            "description": "0-based location in the sentence"
+                          },
+                          "length": {
+                            "type": "integer",
+                            "description": "Length of the fragment"
+                          },
+                          "sentence_index": {
+                            "type": "integer",
+                            "description": "Index of the sentence where the fragment is located"
+                          },
+                          "targets": {
+                            "type": "array",
+                            "description": "Targets of aspects (for aspect-based sentiment analysis).",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "reasons": {
+                            "type": "array",
+                            "description": "Reason tags (for aspect-based sentiment analysis).",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "text": {
+                            "type": "string",
+                            "description": "The fragment itself (`snippets` must be set to `true`)"
+                          },
+                          "explanation": {
+                            "type": "string",
+                            "description": "Human-readable explanation of the rationale for flagging"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Hello Tisane": {
+                    "value": {
+                      "text": "Hello Tisane API!",
+                      "entities_summary": [
+                        {
+                          "type": "software",
+                          "name": "Tisane API",
+                          "mentions": [
+                            {
+                              "sentence_index": 0,
+                              "offset": 6,
+                              "length": 10
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "Abuse detection": {
+                    "value": {
+                      "text": "Babylonians should stay away from our country. We are full.",
+                      "abuse": [
+                        {
+                          "sentence_index": 0,
+                          "offset": 0,
+                          "length": 45,
+                          "text": "Babylonians should stay away from our country",
+                          "type": "bigotry",
+                          "severity": "low"
+                        }
+                      ],
+                      "sentiment_expressions": [
+                        {
+                          "sentence_index": 0,
+                          "offset": 0,
+                          "length": 45,
+                          "text": "Babylonians should stay away from our country",
+                          "polarity": "negative"
+                        }
+                      ]
+                    }
+                  },
+                  "Extract topics (native standard)": {
+                    "value": {
+                      "text": "An inertial force is a force that resists a change in velocity of an object.",
+                      "topics": [
+                        "physics"
+                      ]
+                    }
+                  },
+                  "Extract topics (IAB standard)": {
+                    "value": {
+                      "text": "moon, Jupiter and Mars",
+                      "topics": [
+                        "Space and Astronomy"
+                      ]
+                    }
+                  },
+                  "Adverse media monitoring in fintech": {
+                    "value": {
+                      "text": "HSBC has been accused of money laundering recently",
+                      "topics": [
+                        "laws"
+                      ],
+                      "sentiment_expressions": [
+                        {
+                          "sentence_index": 0,
+                          "offset": 0,
+                          "length": 41,
+                          "text": "HSBC has been accused of money laundering",
+                          "polarity": "negative",
+                          "reasons": [
+                            "compliance",
+                            "misconduct"
+                          ]
+                        }
+                      ],
+                      "entities_summary": [
+                        {
+                          "type": "organization",
+                          "name": "HSBC",
+                          "mentions": [
+                            {
+                              "sentence_index": 0,
+                              "offset": 0,
+                              "length": 4,
+                              "text": "HSBC"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "Parse alias w/ sentence structure": {
+                    "value": {
+                      "text": "anxiousgayhorseonketamine",
+                      "topics": [],
+                      "abuse": [
+                        {
+                          "sentence_index": 0,
+                          "offset": 17,
+                          "length": 8,
+                          "type": "adult_only",
+                          "severity": "high",
+                          "tags": [
+                            "hallucinogen"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "Parse hashtag and output words": {
+                    "value": {
+                      "text": "#deathtodishonestpeople",
+                      "topics": [
+                        "crime"
+                      ],
+                      "abuse": [
+                        {
+                          "sentence_index": 0,
+                          "offset": 1,
+                          "length": 22,
+                          "type": "criminal_activity",
+                          "severity": "extreme",
+                          "tags": [
+                            "call_for_violence",
+                            "death"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid JSON or language code."
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key or quota exceeded."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/languages": {
+      "get": {
+        "operationId": "languages",
+        "security": [
+          {
+            "Tisane-API-Key": []
+          }
+        ],
+        "tags": [
+          "NLU / NLP Methods"
+        ],
+        "summary": "List available languages",
+        "description": "Retrieve a list of supported languages. \n\nThe response includes the following attributes:\n* `id` - Language ID.\n* `name` - Native name.\n* `englishName` - English name.\n* `nativeEncoding` - Encoding of the language.\n* `preferredFont` - Recommended font for display.\n* `latin` - Whether the language uses Latin script.\n* `rightToLeft` - Whether the language uses right-to-left script (e.g., Arabic, Hebrew, Persian).",
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "example": "application/json"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "isoCode": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "englishName": {
+                        "type": "string"
+                      },
+                      "nativeEncoding": {
+                        "type": "string"
+                      },
+                      "fontFace": {
+                        "type": "string"
+                      },
+                      "latin": {
+                        "type": "boolean"
+                      },
+                      "rightToLeft": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "example": [
+                  {
+                    "isoCode": "ar",
+                    "name": "العربية",
+                    "englishName": "Arabic",
+                    "nativeEncoding": "iso-8859-6",
+                    "fontFace": "Arial",
+                    "latin": false,
+                    "rightToLeft": true
+                  },
+                  {
+                    "isoCode": "en",
+                    "name": "English",
+                    "englishName": "English",
+                    "nativeEncoding": "iso-8859-1",
+                    "fontFace": "Arial",
+                    "latin": true
+                  },
+                  {
+                    "isoCode": "zh-CN",
+                    "name": "简体中文",
+                    "englishName": "Chinese, Simplified",
+                    "nativeEncoding": "gb18030",
+                    "fontFace": "NSimSun",
+                    "latin": false
+                  },
+                  {
+                    "isoCode": "zh-TW",
+                    "name": "繁體中文",
+                    "englishName": "Chinese, Traditional",
+                    "nativeEncoding": "iso-8859-1",
+                    "fontFace": "Arial Unicode MS",
+                    "latin": false
+                  },
+                  {
+                    "isoCode": "ja",
+                    "name": "日本語",
+                    "englishName": "Japanese",
+                    "nativeEncoding": "ISO-2022",
+                    "fontFace": "MS Mincho",
+                    "latin": false
+                  },
+                  {
+                    "isoCode": "ru",
+                    "name": "русский",
+                    "englishName": "Russian",
+                    "nativeEncoding": "iso-8859-1",
+                    "fontFace": "Arial",
+                    "latin": false
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helper/extract_text": {
+      "post": {
+        "operationId": "extract_text",
+        "security": [
+          {
+            "Tisane-API-Key": []
+          }
+        ],
+        "tags": [
+          "NLU / NLP Methods"
+        ],
+        "summary": "Text clean-up",
+        "description": "A service method to remove JavaScript, CSS tags, JSON, and other markup, returning pure decoded text.\nThe request body includes the markup content from which text will be extracted.\n\n**Note: This method does not process binary content.**",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string"
+              },
+              "example": "<p>Clean me up</p> <style>/* Styles are unnecessary for text analysis */</style>"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Clean me up"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compare/entities": {
+      "post": {
+        "operationId": "compareEntities",
+        "security": [
+          {
+            "Tisane-API-Key": []
+          }
+        ],
+        "tags": [
+          "NLU / NLP Methods"
+        ],
+        "summary": "Named entity comparison",
+        "description": "Compares two compound named entities and identifies differences.\nThe request body should include:\n* `language1` (string) - IETF tag for the first entity's language.\n* `entity1` (string) - The first entity.\n* `language2` (string) - IETF tag for the second entity's language.\n* `entity2` (string) - The second entity.\n* `type` (string) - The entity type (currently only _person_ is supported).\n\nMore information: [Named Entities in the Tisane API Response Guide](./tisane-api-response-guide.md#named-entities)\nThe response contains:\n* `result` (string) - Comparison result:\n  * `no_single_entity` - One or both entities are invalid.\n  * `same` - Entities are identical (name order might differ).\n  * `different` - Entities differ, with details in `differences`.\n\n* `differences` (array of strings) - Lists detected differences:\n  * `given_name`\n  * `surname`\n  * `title` (e.g., Mr., Mrs.)\n  * `social_role` (e.g., academic degrees)\n  * `suffix`\n  * `variation` (e.g., spelling or style differences)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "language1": "en",
+                "entity1": "Gary Youngman MD",
+                "language2": "en",
+                "entity2": "Gary Oldman",
+                "type": "person"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "example": "application/json"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "result": "different",
+                  "differences": [
+                    "surname",
+                    "social_role"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/similarity": {
+      "post": {
+        "operationId": "similarity",
+        "security": [
+          {
+            "Tisane-API-Key": []
+          }
+        ],
+        "tags": [
+          "NLU / NLP Methods"
+        ],
+        "summary": "Semantic similarity",
+        "description": "Calculate the semantic similarity between two text fragments, either in the same language or in different languages.\n\nThe request body should contain:\n* `content1` (string) - The first text fragment.\n* `language1` (string) - The IETF language code for `content1`.\n* `content2` (string) - The second text fragment to compare.\n* `language2` (string) - The IETF language code for `content2`.\n* `settings` (object) - Additional settings as per specifications. More information: [Tisane API Configuration And Customization Guide](./tisane-api-configuration.md).\n\nThe response is a number between 0 and 1, representing the similarity of the submitted text fragments.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "language1": "en",
+                "content1": "Franz Ferdinand was assassinated by a Serbian revolutionary",
+                "language2": "en",
+                "content2": "A Yugoslav radical assassinated Franz Ferdinand",
+                "settings": {}
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "example": "application/json"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "example": 0.6190476190476191
+              }
+            }
+          }
+        }
+      }
+    },
+    "/detectLanguage": {
+      "post": {
+        "operationId": "detectLanguage",
+        "security": [
+          {
+            "Tisane-API-Key": []
+          }
+        ],
+        "tags": [
+          "NLU / NLP Methods"
+        ],
+        "summary": "Detect language",
+        "description": "Detects the languages used in the provided text fragment and returns the breakdown by offsets.\n\nThe request body should include:\n* `content` (string) - the text fragment to analyze.\n* `languages` (string, optional) - a vertical bar-delimited list of language codes to use as cues.\n* `delimiter` (string, optional) - a regular expression for segmenting the fragment; by default, the fragment is not segmented.\nThe response is a JSON structure containing `languages`, which provides a breakdown of language codes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "description": "The text fragment to analyze."
+                  },
+                  "languages": {
+                    "type": "string",
+                    "description": "A vertical bar-delimited list of language codes to use as cues."
+                  },
+                  "delimiter": {
+                    "type": "string",
+                    "description": "A regular expression for segmenting the fragment; by default, the fragment is not segmented"
+                  }
+                }
+              },
+              "examples": {
+                "Basic": {
+                  "value": {
+                    "content": "c'est la vie"
+                  }
+                },
+                "Hints for ambiguous cases": {
+                  "value": {
+                    "content": "singular",
+                    "languages": "es|ar"
+                  }
+                },
+                "Breakdown of languages segmenting by line": {
+                  "value": {
+                    "content": "скушай\r\nmuffin\r\nכפארה",
+                    "languages": "en|ru|th|he",
+                    "delimiter": "[\\r\\n]"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "example": "application/json"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Basic": {
+                    "value": {
+                      "languages": [
+                        {
+                          "offset": 0,
+                          "length": 12,
+                          "language": "fr",
+                          "score": 1181
+                        }
+                      ]
+                    }
+                  },
+                  "Hints for ambiguous cases": {
+                    "value": {
+                      "languages": [
+                        {
+                          "offset": 0,
+                          "length": 8,
+                          "language": "es",
+                          "score": 1137
+                        }
+                      ]
+                    }
+                  },
+                  "Breakdown of languages segmenting by line": {
+                    "value": {
+                      "languages": [
+                        {
+                          "offset": 0,
+                          "length": 7,
+                          "language": "ru",
+                          "score": 866
+                        },
+                        {
+                          "offset": 8,
+                          "length": 6,
+                          "language": "en",
+                          "score": 731
+                        },
+                        {
+                          "offset": 16,
+                          "length": 6,
+                          "language": "he",
+                          "score": 1024
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transform": {
+      "post": {
+        "operationId": "transform",
+        "security": [
+          {
+            "Tisane-API-Key": []
+          }
+        ],
+        "tags": [
+          "NLU / NLP Methods"
+        ],
+        "summary": "Translate text",
+        "description": "This method translates the input text.\nThe request body should include the following elements:\n* `from` (string) - A standard IETF tag for the source language. Use `*` or a vertical bar-delimited set of language codes to invoke autodetect.\n* `to` (string) - A standard IETF tag for the target language. If the source and target languages are the same, paraphrasing will be applied.\n* `content` (string) - The text content to translate.\n* `settings` (object) - Additional translation settings.\n\nMore information: [Tisane API Configuration And Customization Guide](./tisane-api-configuration.md)\n\nThe response is the transformed text.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "settings": {
+                    "type": "object",
+                    "properties": {
+                      "snippets": {
+                        "type": "boolean",
+                        "description": "When set to `true`, relevant fragments are included in `abuse`, `sentiment_expressions`, and `entities_summary` sections."
+                      },
+                      "abuse": {
+                        "type": "boolean",
+                        "description": "Whether to output `abuse`. Default: `true`"
+                      },
+                      "sentiment": {
+                        "type": "boolean",
+                        "description": "Whether to output sentiment. Default: `true`"
+                      },
+                      "topics": {
+                        "type": "boolean",
+                        "description": "Whether to output topics. Default: `true`"
+                      },
+                      "entities": {
+                        "type": "boolean",
+                        "description": "Whether to output entity information. Default: `true`"
+                      },
+                      "relations": {
+                        "type": "boolean",
+                        "description": "When `true`, relations between the entities are provided."
+                      },
+                      "disable_spellcheck": {
+                        "type": "boolean",
+                        "description": "When set to `true`, spellchecking is not used. Default: `false` (the spellchecking is on by default)"
+                      },
+                      "words": {
+                        "type": "boolean",
+                        "description": "When set to `true`, individual lexical chunks are provided."
+                      },
+                      "state": {
+                        "type": "boolean",
+                        "description": "When set to `true`, the long-term memory contents are returned."
+                      },
+                      "memory": {
+                        "$ref": "#/components/schemas/Memory",
+                        "description": "Initializes the long-term memory content."
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                }
+              },
+              "examples": {
+                "Translate a Japanese sentence": {
+                  "value": {
+                    "from": "ja",
+                    "to": "en",
+                    "content": "彼女はりんごを食べます",
+                    "settings": {}
+                  }
+                },
+                "Auto-detect language and translate Chinese name to English": {
+                  "value": {
+                    "from": "*",
+                    "to": "en",
+                    "content": "汪杰世",
+                    "settings": {
+                      "entity": "person"
+                    }
+                  }
+                },
+                "Translate from English to Russian": {
+                  "value": {
+                    "from": "en",
+                    "to": "ru",
+                    "content": "The movie is available on amazon prime",
+                    "settings": {}
+                  }
+                },
+                "Translate Russian drug addict jargon to English": {
+                  "value": {
+                    "from": "ru",
+                    "to": "en",
+                    "content": "юзаю амф умеренно",
+                    "settings": {}
+                  }
+                },
+                "Translate from Hebrew to Russian preserving gender": {
+                  "value": {
+                    "from": "he",
+                    "to": "ru",
+                    "content": "אני אוהב סיניות",
+                    "settings": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "example": "application/json"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful translation response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "examples": {
+                  "Translate a Japanese sentence": {
+                    "value": "She is eating an apple"
+                  },
+                  "Auto-detect language and translate Chinese name to English": {
+                    "value": "Wang Jie Shi"
+                  },
+                  "Translate from English to Russian": {
+                    "value": "Фильм доступен на amazon prime"
+                  },
+                  "Translate Russian drug addict jargon to English": {
+                    "value": "I moderately take amphetamine"
+                  },
+                  "Translate from Hebrew to Russian preserving gender": {
+                    "value": "Я люблю китаянок"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid JSON or language code."
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key or quota exceeded."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/lm/inflections": {
+      "get": {
+        "operationId": "inflections",
+        "security": [
+          {
+            "Tisane-API-Key": []
+          }
+        ],
+        "tags": [
+          "Language Model Direct Access"
+        ],
+        "summary": "List inflected forms",
+        "description": "Retrieves inflected forms of a specified lexeme within a given language family.",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The code of a language in Tisane. Example: `en`.",
+            "example": "en"
+          },
+          {
+            "name": "lexeme",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The ID of a lexeme to inspect. ",
+            "example": 3130180
+          },
+          {
+            "name": "family",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The ID of a family to inspect. ",
+            "example": 58443
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "type": "string"
+                      },
+                      "isLemma": {
+                        "type": "boolean"
+                      },
+                      "features": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "index": {
+                              "type": "integer"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Inflected forms of \"buy\" in English": {
+                    "value": [
+                      {
+                        "text": "bought",
+                        "features": [
+                          {
+                            "index": 2,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 9,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 10,
+                            "value": "PAP"
+                          },
+                          {
+                            "index": 11,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 21,
+                            "value": "IND"
+                          },
+                          {
+                            "index": 15,
+                            "value": "NO"
+                          },
+                          {
+                            "index": 27,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 5,
+                            "value": "ALL"
+                          }
+                        ]
+                      },
+                      {
+                        "text": "bought",
+                        "features": [
+                          {
+                            "index": 2,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 9,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 10,
+                            "value": "PAST"
+                          },
+                          {
+                            "index": 5,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 11,
+                            "value": "ACT"
+                          },
+                          {
+                            "index": 21,
+                            "value": "IND"
+                          },
+                          {
+                            "index": 15,
+                            "value": "NO"
+                          },
+                          {
+                            "index": 27,
+                            "value": "ALL"
+                          }
+                        ]
+                      },
+                      {
+                        "text": "buy",
+                        "isLemma": true,
+                        "features": [
+                          {
+                            "index": 10,
+                            "value": "BASE"
+                          },
+                          {
+                            "index": 11,
+                            "value": "ACT"
+                          },
+                          {
+                            "index": 21,
+                            "value": "IND"
+                          },
+                          {
+                            "index": 2,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 9,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 15,
+                            "value": "NO"
+                          },
+                          {
+                            "index": 27,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 5,
+                            "value": "ALL"
+                          }
+                        ]
+                      },
+                      {
+                        "text": "buys",
+                        "features": [
+                          {
+                            "index": 5,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 2,
+                            "value": "1"
+                          },
+                          {
+                            "index": 9,
+                            "value": "3"
+                          },
+                          {
+                            "index": 10,
+                            "value": "PRES"
+                          },
+                          {
+                            "index": 15,
+                            "value": "NO"
+                          },
+                          {
+                            "index": 11,
+                            "value": "ACT"
+                          },
+                          {
+                            "index": 21,
+                            "value": "IND"
+                          },
+                          {
+                            "index": 27,
+                            "value": "ALL"
+                          }
+                        ]
+                      },
+                      {
+                        "text": "buying",
+                        "features": [
+                          {
+                            "index": 2,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 9,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 10,
+                            "value": "PRP"
+                          },
+                          {
+                            "index": 5,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 15,
+                            "value": "NO"
+                          },
+                          {
+                            "index": 11,
+                            "value": "ACT"
+                          },
+                          {
+                            "index": 21,
+                            "value": "IND"
+                          },
+                          {
+                            "index": 27,
+                            "value": "ALL"
+                          }
+                        ]
+                      },
+                      {
+                        "text": "buy",
+                        "features": [
+                          {
+                            "index": 10,
+                            "value": "PRES"
+                          },
+                          {
+                            "index": 11,
+                            "value": "ACT"
+                          },
+                          {
+                            "index": 21,
+                            "value": "IND"
+                          },
+                          {
+                            "index": 23,
+                            "value": "BODY"
+                          },
+                          {
+                            "index": 2,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 9,
+                            "value": "1"
+                          },
+                          {
+                            "index": 15,
+                            "value": "NO"
+                          },
+                          {
+                            "index": 27,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 3,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 29,
+                            "value": "00"
+                          },
+                          {
+                            "index": 5,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 22,
+                            "value": "ALL"
+                          }
+                        ]
+                      },
+                      {
+                        "text": "buy",
+                        "features": [
+                          {
+                            "index": 10,
+                            "value": "PRES"
+                          },
+                          {
+                            "index": 11,
+                            "value": "ACT"
+                          },
+                          {
+                            "index": 21,
+                            "value": "IND"
+                          },
+                          {
+                            "index": 23,
+                            "value": "BODY"
+                          },
+                          {
+                            "index": 2,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 9,
+                            "value": "2"
+                          },
+                          {
+                            "index": 15,
+                            "value": "NO"
+                          },
+                          {
+                            "index": 27,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 3,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 29,
+                            "value": "00"
+                          },
+                          {
+                            "index": 5,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 22,
+                            "value": "ALL"
+                          }
+                        ]
+                      },
+                      {
+                        "text": "buy",
+                        "features": [
+                          {
+                            "index": 10,
+                            "value": "PRES"
+                          },
+                          {
+                            "index": 11,
+                            "value": "ACT"
+                          },
+                          {
+                            "index": 21,
+                            "value": "IND"
+                          },
+                          {
+                            "index": 2,
+                            "value": "MANY"
+                          },
+                          {
+                            "index": 9,
+                            "value": "3"
+                          },
+                          {
+                            "index": 15,
+                            "value": "NO"
+                          },
+                          {
+                            "index": 27,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 3,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 29,
+                            "value": "00"
+                          },
+                          {
+                            "index": 5,
+                            "value": "ALL"
+                          },
+                          {
+                            "index": 22,
+                            "value": "ALL"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "Inflected forms of \"United States\" in Russian": {
+                    "value": [
+                      {
+                        "features": [
+                          {
+                            "index": 9,
+                            "value": "3"
+                          },
+                          {
+                            "index": 15,
+                            "value": "NOM"
+                          }
+                        ],
+                        "isLemma": true,
+                        "text": "Соединённые Штаты Америки"
+                      },
+                      {
+                        "features": [
+                          {
+                            "index": 15,
+                            "value": "GEN"
+                          },
+                          {
+                            "index": 9,
+                            "value": "3"
+                          }
+                        ],
+                        "text": "Соединенных Штатов Америки"
+                      },
+                      {
+                        "features": [
+                          {
+                            "index": 15,
+                            "value": "INST"
+                          },
+                          {
+                            "index": 9,
+                            "value": "3"
+                          }
+                        ],
+                        "text": "Соединенными Штатами Америки"
+                      },
+                      {
+                        "features": [
+                          {
+                            "index": 15,
+                            "value": "DAT"
+                          },
+                          {
+                            "index": 9,
+                            "value": "3"
+                          }
+                        ],
+                        "text": "Соединенным Штатам Америки"
+                      },
+                      {
+                        "features": [
+                          {
+                            "index": 15,
+                            "value": "PREP"
+                          },
+                          {
+                            "index": 9,
+                            "value": "3"
+                          }
+                        ],
+                        "text": "Соединенных Штатах Америки"
+                      },
+                      {
+                        "features": [
+                          {
+                            "index": 24,
+                            "value": "THNG"
+                          },
+                          {
+                            "index": 2,
+                            "value": "1"
+                          },
+                          {
+                            "index": 9,
+                            "value": "3"
+                          },
+                          {
+                            "index": 7,
+                            "value": "NA"
+                          },
+                          {
+                            "index": 15,
+                            "value": "ACC"
+                          }
+                        ],
+                        "text": "Соединённые Штаты Америки"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
