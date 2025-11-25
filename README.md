@@ -83,5 +83,4 @@ docker compose up --build
 ## Additional Resources
 
 - [Tisane API Documentation](https://docs.tisane.ai)
-- [Tisane API Specs](./tisane-api-short.json)
 - [AccelByte Extend Event Handler Guide](https://docs.accelbyte.io/gaming-services/services/extend/event-handler/getting-started-event-handler/)
