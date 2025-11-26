@@ -1,10 +1,10 @@
 # AccelByte Extend Event Handler - Tisane Integration
 
-This project demonstrates how to integrate [Tisane AI](https://tisane.ai/) with AccelByte Gaming Services for real-time chat content moderation using Extend Event Handler.
+This is an integration adapter of [Tisane AI](https://tisane.ai/) with AccelByte Gaming Services for real-time chat content moderation using Extend Event Handler.
 
 ## About AccelByte Extend Event Handler
 
-AccelByte Gaming Services provides an Extend Event Handler feature that lets you listen to platform events and execute custom logic. This is a gRPC server that receives events through Kafka Connect.
+AccelByte Gaming Services provides an Extend Event Handler feature that lets you listen to platform events and execute custom logic. 
 
 For complete setup and deployment instructions, see the [official AccelByte documentation](https://docs.accelbyte.io/gaming-services/services/extend/event-handler/getting-started-event-handler/).
 
