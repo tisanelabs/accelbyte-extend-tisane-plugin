@@ -19,9 +19,9 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Extensions.Propagators;
 
 using Prometheus;
-using AccelByte.PluginArch.EventHandler.Demo.Server.Services;
+using AccelByte.Extend.Tisane.Plugin.Services;
 
-namespace AccelByte.PluginArch.EventHandler.Demo.Server
+namespace AccelByte.Extend.Tisane.Plugin
 {
     public class Program
     {
@@ -102,8 +102,8 @@ namespace AccelByte.PluginArch.EventHandler.Demo.Server
             }
 
             app.UseGrpcMetrics();
-            app.MapGrpcService<UserLoggedInService>();
-            app.MapGrpcService<UserThirdPartyLoggedInService>();
+            // app.MapGrpcService<UserLoggedInService>();
+            // app.MapGrpcService<UserThirdPartyLoggedInService>();
             app.MapGrpcService<PersonalChatSentService>();
             app.MapGrpcReflectionService();
             app.MapGrpcHealthChecksService();

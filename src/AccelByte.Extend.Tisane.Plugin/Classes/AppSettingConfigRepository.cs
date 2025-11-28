@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using AccelByte.Sdk.Core.Logging;
 using AccelByte.Sdk.Core.Repository;
 
-namespace AccelByte.PluginArch.EventHandler.Demo.Server
+namespace AccelByte.Extend.Tisane.Plugin
 {
     public class AppSettingConfigRepository : IConfigRepository
     {

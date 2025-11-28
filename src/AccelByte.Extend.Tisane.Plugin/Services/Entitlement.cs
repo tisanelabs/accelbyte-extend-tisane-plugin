@@ -6,7 +6,7 @@ using AccelByte.Sdk.Api.Platform.Model;
 using AccelByte.Sdk.Api;
 using AccelByte.Sdk.Core;
 
-namespace AccelByte.PluginArch.EventHandler.Demo.Server.Services
+namespace AccelByte.Extend.Tisane.Plugin.Services
 {
     public static class Entitlement
     {

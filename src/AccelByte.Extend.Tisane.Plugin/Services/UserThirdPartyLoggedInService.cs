@@ -10,7 +10,7 @@ using Grpc.Core;
 using AccelByte.IAM.Account;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AccelByte.PluginArch.EventHandler.Demo.Server.Services
+namespace AccelByte.Extend.Tisane.Plugin.Services
 {
     public class UserThirdPartyLoggedInService : UserAuthenticationUserThirdPartyLoggedInService.UserAuthenticationUserThirdPartyLoggedInServiceBase
     {

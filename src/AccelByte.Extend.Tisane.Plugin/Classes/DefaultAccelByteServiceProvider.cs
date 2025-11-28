@@ -11,7 +11,7 @@ using AccelByte.Sdk.Core;
 using AccelByte.Sdk.Feature.LocalTokenValidation;
 using AccelByte.Sdk.Feature.AutoTokenRefresh;
 
-namespace AccelByte.PluginArch.EventHandler.Demo.Server
+namespace AccelByte.Extend.Tisane.Plugin
 {
     public class DefaultAccelByteServiceProvider : IAccelByteServiceProvider
     {

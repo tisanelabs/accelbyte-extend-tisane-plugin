@@ -9,7 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 
 using AccelByte.Chat.Chat;
 
-namespace AccelByte.PluginArch.EventHandler.Demo.Server.Services
+namespace AccelByte.Extend.Tisane.Plugin.Services
 {
     public class PersonalChatSentService : PersonalChatPersonalChatSentService.PersonalChatPersonalChatSentServiceBase
     {

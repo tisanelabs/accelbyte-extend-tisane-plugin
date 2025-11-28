@@ -10,7 +10,7 @@ using HdrHistogram;
 using OpenTelemetry.Metrics;
 using System.Reflection;
 
-namespace AccelByte.PluginArch.EventHandler.Demo.Server.Metric
+namespace AccelByte.Extend.Tisane.Plugin.Metric
 {
     public class RequestPercentileMetricsListener
     {

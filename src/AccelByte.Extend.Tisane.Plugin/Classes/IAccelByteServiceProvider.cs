@@ -5,7 +5,7 @@
 using System;
 using AccelByte.Sdk.Core;
 
-namespace AccelByte.PluginArch.EventHandler.Demo.Server
+namespace AccelByte.Extend.Tisane.Plugin
 {
     public interface IAccelByteServiceProvider
     {

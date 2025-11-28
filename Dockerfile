@@ -4,10 +4,10 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine3.22 AS gr
 ARG TARGETARCH
 RUN apk update && apk add --no-cache gcompat
 WORKDIR /project
-COPY src/AccelByte.PluginArch.EventHandler.Demo.Server/*.csproj .
+COPY src/AccelByte.Extend.Tisane.Plugin/*.csproj .
 RUN ([ "$TARGETARCH" = "amd64" ] && echo "linux-musl-x64" || echo "linux-musl-$TARGETARCH") > /tmp/dotnet-rid
 RUN dotnet restore -r $(cat /tmp/dotnet-rid)
-COPY src/AccelByte.PluginArch.EventHandler.Demo.Server/ .
+COPY src/AccelByte.Extend.Tisane.Plugin/ .
 RUN dotnet publish -c Release -r $(cat /tmp/dotnet-rid) --no-restore -o /build/
 
 # Extend Event Handler app
@@ -17,4 +17,4 @@ WORKDIR /app
 COPY --from=grpc-server-builder /build/ .
 # gRPC server port and /metrics HTTP port
 EXPOSE 6565 8080
-CMD [ "/app/AccelByte.PluginArch.EventHandler.Demo.Server" ]
+CMD [ "/app/AccelByte.Extend.Tisane.Plugin" ]

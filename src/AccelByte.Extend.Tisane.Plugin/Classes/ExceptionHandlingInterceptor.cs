@@ -11,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
-namespace AccelByte.PluginArch.EventHandler.Demo.Server
+namespace AccelByte.Extend.Tisane.Plugin
 {
     public class ExceptionHandlingInterceptor : Interceptor
     {
