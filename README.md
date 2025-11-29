@@ -22,6 +22,7 @@ Configure these environment variables in your AccelByte Extend App:
 | `TISANE_PARSE_URL` | Tisane API endpoint for text analysis | `https://api.tisane.ai/parse` |
 | `TISANE_LANGUAGE_CODES` | Language code for content analysis (e.g., `en`, `es`, `fr`) | `en` |
 | `TISANE_SETTING_FORMAT` | Content format type. Use `dialogue` for chat messages | `dialogue` |
+| `TISANE_BAN_COMPETITIVE_LANGUAGE` | If `true`, disables the `game_violence_ok` flag. Default behavior (when not set or `false`) includes `game_violence_ok`. | `false` |
 
 ### Getting Your Tisane API Key
 

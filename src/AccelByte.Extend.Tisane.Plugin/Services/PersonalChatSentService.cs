@@ -47,12 +47,36 @@ namespace AccelByte.Extend.Tisane.Plugin.Services
                         string language = Environment.GetEnvironmentVariable("TISANE_LANGUAGE_CODES") ?? "en";
                         string format = Environment.GetEnvironmentVariable("TISANE_SETTING_FORMAT") ?? "dialogue";
                         string parseURL = Environment.GetEnvironmentVariable("TISANE_PARSE_URL") ?? "https://api.tisane.ai/parse";
+
+                        bool banCompetitiveLanguage = false;
+                        string? banCompLangEnv = Environment.GetEnvironmentVariable("TISANE_BAN_COMPETITIVE_LANGUAGE");
+                        if (!string.IsNullOrEmpty(banCompLangEnv))
+                        {
+                            if (bool.TryParse(banCompLangEnv, out bool result))
+                            {
+                                banCompetitiveLanguage = result;
+                            }
+                        }
+
+                        object settings;
+                        if (banCompetitiveLanguage)
+                        {
+                            settings = new { format = format };
+                        }
+                        else
+                        {
+                            settings = new { format = format, memory = new { flags = new[] { "game_violence_ok" } } };
+                        }
+
+                        var settingsJson = System.Text.Json.JsonSerializer.Serialize(settings);
+                        _Logger.LogInformation("Tisane Settings: {Settings}", settingsJson);
+
                         // Create the request body
                         var requestBody = new
                         {
                             language = language,
                             content = payload.Payload,
-                            settings = new { format = format }
+                            settings = settings
                         };
                         
                         var jsonBody = System.Text.Json.JsonSerializer.Serialize(requestBody);
