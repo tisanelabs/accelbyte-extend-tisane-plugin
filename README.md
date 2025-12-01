@@ -23,6 +23,14 @@ Configure these environment variables in your AccelByte Extend App:
 | `TISANE_LANGUAGE_CODES` | Language code for content analysis (e.g., `en`, `es`, `fr`) | `en` |
 | `TISANE_SETTING_FORMAT` | Content format type. Use `dialogue` for chat messages | `dialogue` |
 | `TISANE_BAN_COMPETITIVE_LANGUAGE` | If `true`, disables the `game_violence_ok` flag. Default behavior (when not set or `false`) includes `game_violence_ok`. | `false` |
+| `PERSONAL_ATTACK_MESSAGE` | Message to display when a personal attack is detected. | `Insult detected` (if unset) |
+| `BIGOTRY_MESSAGE` | Message to display when bigotry is detected. | *Optional* |
+| `EXTERNAL_CONTACT_MESSAGE` | Message to display when external contact info is detected. | *Optional* |
+| `PROFANITY_MESSAGE` | Message to display when profanity is detected. | *Optional* |
+| `SEXUAL_ADVANCES_MESSAGE` | Message to display when sexual advances are detected. | *Optional* |
+| `ADULT_ONLY_MESSAGE` | Message to display when adult content is detected. | *Optional* |
+| `DATA_LEAK_MESSAGE` | Message to display when a data leak is detected. | *Optional* |
+| `THREAT_MESSAGE` | Message to display when a threat is detected. | *Optional* |
 
 ### Getting Your Tisane API Key
 

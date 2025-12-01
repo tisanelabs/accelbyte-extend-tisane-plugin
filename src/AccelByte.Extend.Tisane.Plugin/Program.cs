@@ -53,6 +53,8 @@ namespace AccelByte.Extend.Tisane.Plugin
 
             builder.Services
                 .AddSingleton<IAccelByteServiceProvider, DefaultAccelByteServiceProvider>()
+                .AddHttpClient()
+                .AddTransient<ITisaneService, TisaneService>()
                 .AddOpenTelemetry()
                 .WithTracing((traceConfig) =>
                 {
@@ -105,6 +107,7 @@ namespace AccelByte.Extend.Tisane.Plugin
             // app.MapGrpcService<UserLoggedInService>();
             // app.MapGrpcService<UserThirdPartyLoggedInService>();
             app.MapGrpcService<PersonalChatSentService>();
+            app.MapGrpcService<ProfanityFilterServiceImpl>();
             app.MapGrpcReflectionService();
             app.MapGrpcHealthChecksService();
             app.MapMetrics();
